@@ -1,5 +1,7 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class DataSource {
 
@@ -54,8 +56,9 @@ public class DataSource {
     //insert a note
     // INSERT INTO notes(student_id, course, note) VALUES("201216001", 4, 4);
 
-    //select all of the students's names
-    //SELECT students.name FROM students;
+    //select all of the students
+    //SELECT students.name, students.semester, students.subject  FROM students;
+    public static final String QUERY_STUDENTS = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SEMESTER + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SUBJECT + " FROM " + TABLE_STUDENTS;
 
     //select all of the subjects
     //SELECT subjects.name FROM subjects
@@ -65,7 +68,7 @@ public class DataSource {
 
     private Connection conn;
 
-    private PreparedStatement queryStudent;
+    private PreparedStatement queryStudents;
     private PreparedStatement querySubject;
     private PreparedStatement queryCourses;
     private PreparedStatement queryNotesForStudent;
@@ -81,6 +84,7 @@ public class DataSource {
 
             conn = DriverManager.getConnection(CONNECTION_STRING);
             queryNotesForStudent = conn.prepareStatement(QUERY_NOTES_FOR_STUDENT);
+
 
             return true;
 
@@ -104,6 +108,34 @@ public class DataSource {
 
             System.out.println("Couldn't close connection " + e.getMessage());
         }
+
+    }
+
+    public List<Student> queryStudents() {
+
+
+        try (Statement statement = conn.createStatement();
+             ResultSet resultSet = statement.executeQuery(QUERY_STUDENTS)
+        ) {
+
+            List<Student> students = new ArrayList<>();
+
+
+            while (resultSet.next()) {
+
+
+                Student student = new Student(resultSet.getString(1), resultSet.getString(2), resultSet.getInt(3));
+
+                students.add(student);
+            }
+            return students;
+
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+            return null;
+        }
+
 
     }
 

@@ -2,31 +2,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public abstract class Student {
-
-    private Scanner sc = new Scanner(System.in);
-    private static List<String> courses;
+public class Student {
 
 
     private String name;
-    private int gradeYear;
-    private String ID;
-    private static int id = 1000;
+    private String subject;
+    private int semester;
 
-    public Student() {
+    private List<String> currentCourses;
 
-        courses = new ArrayList<>();
 
-        System.out.println("Enter student name");
+    public Student(String name, String subject, int semester) {
 
-        this.name = sc.nextLine();
-
-        System.out.println("Enter student year");
-        this.gradeYear = sc.nextInt();
-
+        this.name = name;
+        this.subject = subject;
+        this.semester = semester;
 
     }
 
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public int getSemester() {
+        return semester;
+    }
+
+    public void setSemester(int semester) {
+        this.semester = semester;
+    }
 
     private void printAvailableCourses() {
 
