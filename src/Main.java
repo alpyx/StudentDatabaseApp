@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main {
@@ -9,17 +10,22 @@ public class Main {
 
     public static void main(String[] args) {
 
-        System.out.println("How many students do we have?");
-        int number = sc.nextInt();
 
-        for (int i = 0; i < number; i++) {
+        DataSource dataSource = new DataSource();
 
-            Student stud1 = new Student();
-            stud1.enroll();
-            stud1.payTuition();
-            System.out.println(stud1.toString());
-            students.add(stud1);
+        if (!dataSource.open()) {
 
+            System.out.println("Can't open data source");
+            return;
+
+        }
+
+        HashMap<String, Integer> notes = dataSource.queryNotesForStudent("Alper Ahmedov");
+
+
+        for (String course : notes.keySet()
+        ) {
+            System.out.println(course + " : " + notes.get(course));
         }
 
 
