@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -23,11 +24,37 @@ public class Main {
         HashMap<String, Integer> notes = dataSource.queryNotesForStudent("Alper Ahmedov");
 
 
-        for (String course : notes.keySet()
-        ) {
-            System.out.println(course + " : " + notes.get(course));
-        }
+//        if (notes != null) {
+//            for (String course : notes.keySet()
+//            ) {
+//                System.out.println(course + " : " + notes.get(course));
+//            }
+//        }
 
+
+        List<Student> students = dataSource.queryStudents();
+
+
+//        for (Student student : students) {
+//
+//            System.out.println(student.getName());
+//        }
+
+        List<String> subjects = dataSource.querySubjects();
+
+
+//        for (String subject : subjects
+//        ) {
+//            System.out.println(subject);
+//        }
+
+        double average = dataSource.queryAverageNoteForSemester(201216001, 1);
+        System.out.println(average);
+
+        int note = dataSource.queryNoteForCourse(201216001, "Deutsch");
+        System.out.println(note);
+
+        dataSource.close();
 
     }
 }

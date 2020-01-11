@@ -50,16 +50,29 @@ public class DataSource {
 
 
     //get the average note for the semester for a student
-    //SELECT avg(note) FROM notes WHERE student_id = 201216001;
+    //SELECT avg(note) FROM notes INNER JOIN courses ON notes.course = courses._id WHERE notes.student_id = "201216001" AND courses.semester = 1;
+
+    public static final String QUERY_AVERAGE_NOTE_FOR_SEMESTER = "SELECT avg(" + COLUMN_NOTES_NOTE + ") FROM " + TABLE_NOTES + " INNER JOIN " + TABLE_COURSES + " ON " + TABLE_NOTES + "." + COLUMN_NOTES_COURSE_ID + " = " + TABLE_COURSES + "." + COLUMN_COURSE_ID + " WHERE " + TABLE_NOTES + "." + COLUMN_NOTES_STUDENT_ID + " = ? AND " + TABLE_COURSES + "." + COLUMN_COURSE_SEMESTER + " = ?";
+
+
+    // get the note for a subject
+//    SELECT notes.note FROM notes INNER JOIN courses ON notes.course = courses._id WHERE student_id = " 201216001" AND courses.name = "Deutsch";
+
+    public static final String QUERY_NOTE_FOR_COURSE = "SELECT " + TABLE_NOTES + "." + COLUMN_NOTES_NOTE + " FROM " + TABLE_NOTES + " INNER JOIN " + TABLE_COURSES +
+            " ON " + TABLE_NOTES + "." + COLUMN_NOTES_COURSE_ID + " = " + TABLE_COURSES + "." + COLUMN_COURSE_ID + " WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + TABLE_COURSES + "." + COLUMN_COURSE_NAME + " = ?";
 
 
     //insert a note
     // INSERT INTO notes(student_id, course, note) VALUES("201216001", 4, 4);
 
+
     //select all of the students
     //SELECT students.name, students.semester, students.subject  FROM students;
     public static final String QUERY_STUDENTS = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SEMESTER + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SUBJECT + " FROM " + TABLE_STUDENTS;
 
+    public static final String QUERY_SUBJECTS = "SELECT " + TABLE_SUBJECTS + "." + COLUMN_SUBJECT_NAME + " FROM " + TABLE_SUBJECTS;
+
+    public static final String QUERY_COURSES = "SELECT * FROM " + TABLE_COURSES;
     //select all of the subjects
     //SELECT subjects.name FROM subjects
 
@@ -68,10 +81,9 @@ public class DataSource {
 
     private Connection conn;
 
-    private PreparedStatement queryStudents;
-    private PreparedStatement querySubject;
-    private PreparedStatement queryCourses;
     private PreparedStatement queryNotesForStudent;
+    private PreparedStatement queryAverageNoteForSemester;
+    private PreparedStatement queryNoteForCourse;
 
     private PreparedStatement insertIntoStudents;
     private PreparedStatement insertIntoSubjects;
@@ -83,14 +95,16 @@ public class DataSource {
         try {
 
             conn = DriverManager.getConnection(CONNECTION_STRING);
+
             queryNotesForStudent = conn.prepareStatement(QUERY_NOTES_FOR_STUDENT);
+            queryAverageNoteForSemester = conn.prepareStatement(QUERY_AVERAGE_NOTE_FOR_SEMESTER);
+            queryNoteForCourse = conn.prepareStatement(QUERY_NOTE_FOR_COURSE);
 
 
             return true;
 
         } catch (SQLException e) {
-
-            System.out.println("Couldn't connect do database " + e.getMessage());
+            System.out.println("Couldn't connect to database " + e.getMessage());
             return false;
         }
 
@@ -102,6 +116,8 @@ public class DataSource {
         try {
 
             if (queryNotesForStudent != null) queryNotesForStudent.close();
+            if (queryAverageNoteForSemester != null) queryAverageNoteForSemester.close();
+            if (queryNoteForCourse != null) queryNoteForCourse.close();
 
 
         } catch (SQLException e) {
@@ -139,6 +155,98 @@ public class DataSource {
 
     }
 
+    public int queryNoteForCourse(int studentID, String courseName) {
+
+
+        try {
+
+            queryNoteForCourse.setInt(1, studentID);
+            queryNoteForCourse.setString(2, courseName);
+
+            ResultSet resultSet = queryNoteForCourse.executeQuery();
+
+            return resultSet.getInt(1);
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+            return -1;
+        }
+
+
+    }
+
+
+    public double queryAverageNoteForSemester(int studentID, int semester) {
+
+
+        try {
+
+            queryAverageNoteForSemester.setInt(1, studentID);
+            queryAverageNoteForSemester.setInt(2, semester);
+
+
+            ResultSet resultSet = queryAverageNoteForSemester.executeQuery();
+
+            return resultSet.getDouble(1);
+
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+            return -1;
+        }
+
+
+    }
+
+
+    public List<String> querySubjects() {
+
+        try (Statement statement = conn.createStatement();
+             ResultSet resultSet = statement.executeQuery(QUERY_SUBJECTS)) {
+
+            List<String> subjects = new ArrayList<>();
+
+            while (resultSet.next()) {
+
+                subjects.add(resultSet.getString(1));
+
+            }
+            return subjects;
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+            return null;
+        }
+
+    }
+
+    public List<Course> queryCourses() {
+
+
+        try (Statement statement = conn.createStatement();
+             ResultSet resultSet = statement.executeQuery(QUERY_COURSES);
+        ) {
+
+            List<Course> courses = new ArrayList<>();
+
+
+            while (resultSet.next()) {
+
+
+                Course course = new Course(resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3));
+
+                courses.add(course);
+
+            }
+            return courses;
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+            return null;
+        }
+
+    }
+
 
     public HashMap<String, Integer> queryNotesForStudent(String studentName) {
 
@@ -146,8 +254,14 @@ public class DataSource {
         try {
 
             queryNotesForStudent.setString(1, studentName);
-            System.out.println(QUERY_NOTES_FOR_STUDENT);
+//            System.out.println(QUERY_NOTES_FOR_STUDENT);
             ResultSet resultSet = queryNotesForStudent.executeQuery();
+
+            if (!resultSet.next()) {
+
+                System.out.println(studentName + " has not been found.");
+                return null;
+            }
 
             HashMap<String, Integer> studentNotes = new HashMap<>();
 
