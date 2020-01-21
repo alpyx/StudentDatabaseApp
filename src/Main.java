@@ -1,3 +1,4 @@
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,7 @@ public class Main {
     private static Scanner sc = new Scanner(System.in);
     private static ArrayList<Student> students = new ArrayList<>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
 
 
         DataSource dataSource = new DataSource();
@@ -49,10 +50,20 @@ public class Main {
 //        }
 
         double average = dataSource.queryAverageNoteForSemester(201216001, 1);
-        System.out.println(average);
-
+//        System.out.println(average);
+//
         int note = dataSource.queryNoteForCourse(201216001, "Deutsch");
-        System.out.println(note);
+//        System.out.println(note);
+
+//        dataSource.insertNote(201216001, 4, 4);
+
+        List<Course> coursesForSubject = dataSource.queryCoursesForSubject("Informatik");
+
+        for (Course course : coursesForSubject
+        ) {
+
+            System.out.println(course.getName());
+        }
 
         dataSource.close();
 
