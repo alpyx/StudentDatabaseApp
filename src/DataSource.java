@@ -73,11 +73,16 @@ public class DataSource {
     //SELECT students.name, students.semester, students.subject  FROM students;
     public static final String QUERY_STUDENTS = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SEMESTER + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SUBJECT + " FROM " + TABLE_STUDENTS;
 
-    public static final String QUERY_SUBJECTS = "SELECT " + TABLE_SUBJECTS + "." + COLUMN_SUBJECT_NAME + " FROM " + TABLE_SUBJECTS;
+    public static final String QUERY_ALL_SUBJECTS = "SELECT " + COLUMN_SUBJECT_NAME + " FROM " + TABLE_SUBJECTS;
 
     public static final String QUERY_COURSES_FOR_SUBJECT = "SELECT " + COLUMN_COURSE_NAME + ", " + COLUMN_COURSE_SEMESTER + ", " + COLUMN_COURSE_SUBJECT + " FROM " + TABLE_COURSES + " WHERE " + COLUMN_COURSE_SUBJECT + " = ?";
 
-    public static final String QUERY_SUBJECT = "SELECT " + TABLE_SUBJECTS + "." + COLUMN_SUBJECT_ID + " FROM " + TABLE_SUBJECTS + " WHERE " + TABLE_SUBJECTS + "." + COLUMN_SUBJECT_NAME + " = ?";
+    public static final String QUERY_SUBJECT = "SELECT " + COLUMN_SUBJECT_ID + " FROM " + TABLE_SUBJECTS + " WHERE " + COLUMN_SUBJECT_NAME + " = ?";
+
+
+    public static final String QUERY_COURSE = "SELECT " + COLUMN_COURSE_ID + " FROM " + TABLE_COURSES + " WHERE " + COLUMN_COURSE_NAME + " = ?";
+
+    public static final String QUERY_STUDENT = "SELECT " + COLUMN_STUDENT_NAME + " FROM " + TABLE_STUDENTS + " WHERE " + COLUMN_STUDENT_ID + " = ?";
     //select all of the subjects
     //SELECT subjects.name FROM subjects
 
@@ -87,15 +92,15 @@ public class DataSource {
 
     public static final String UPDATE_NOTE = "UPDATE " + TABLE_NOTES + " SET " + COLUMN_NOTES_NOTE + " = ?" + " WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + COLUMN_NOTES_COURSE_ID + "= ?";
 
-
     private Connection conn;
 
     private PreparedStatement queryNotesForStudent;
     private PreparedStatement queryAverageNoteForSemester;
     private PreparedStatement queryNoteForCourse;
     private PreparedStatement queryCoursesForSubject;
-    private PreparedStatement querySubjects;
     private PreparedStatement querySubject;
+    private PreparedStatement queryCourse;
+    private PreparedStatement queryStudent;
 
     private PreparedStatement insertStudent;
     private PreparedStatement insertSubject;
@@ -114,13 +119,17 @@ public class DataSource {
             queryNotesForStudent = conn.prepareStatement(QUERY_NOTES_FOR_STUDENT);
             queryAverageNoteForSemester = conn.prepareStatement(QUERY_AVERAGE_NOTE_FOR_SEMESTER);
             queryNoteForCourse = conn.prepareStatement(QUERY_NOTE_FOR_COURSE);
-            querySubjects = conn.prepareStatement(QUERY_SUBJECTS);
             querySubject = conn.prepareStatement(QUERY_SUBJECT);
             queryCoursesForSubject = conn.prepareStatement(QUERY_COURSES_FOR_SUBJECT);
+            queryCourse = conn.prepareStatement(QUERY_COURSE);
+            queryStudent = conn.prepareStatement(QUERY_STUDENT);
+
 
             insertNote = conn.prepareStatement(INSERT_NOTE);
             insertStudent = conn.prepareStatement(INSERT_STUDENT);
             insertSubject = conn.prepareStatement(INSERT_SUBJECT);
+
+            updateNote = conn.prepareStatement(UPDATE_NOTE);
 
 
             return true;
@@ -142,11 +151,13 @@ public class DataSource {
             if (queryNoteForCourse != null) queryNoteForCourse.close();
             if (queryCoursesForSubject != null) queryCoursesForSubject.close();
             if (querySubject != null) querySubject.close();
-
+            if (queryStudent != null) queryStudent.close();
 
             if (insertNote != null) insertNote.close();
             if (insertStudent != null) insertStudent.close();
             if (insertSubject != null) insertSubject.close();
+
+            if (updateNote != null) updateNote.close();
 
 
         } catch (SQLException e) {
@@ -214,11 +225,54 @@ public class DataSource {
 
     }
 
-    public int updateNote(int studentID, int course, int note) {
+    public int queryStudent(String studentName) {
+
+
+        try {
+            queryStudent.setString(1, studentName);
+
+            ResultSet resultSet = querySubject.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println("Query failed " + e.getMessage());
+        }
+
+        return -1;
+
+    }
+
+
+    public int updateNote(int note, int studentID, String courseName) {
 
         //TODO update a note after an emendation
 
-        return 0;
+        // note, studentid, courseid
+
+        try {
+
+
+            if (queryCourse(courseName) == -1) {
+                System.out.println("No such course in the database!");
+                return -1;
+            }
+
+
+            updateNote.setInt(1, note);
+            updateNote.setInt(2, studentID);
+            updateNote.setInt(3, queryCourse(courseName));
+
+            return updateNote.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println("Failed to update note " + e.getMessage());
+            return -1;
+        }
+
 
     }
 
@@ -227,11 +281,11 @@ public class DataSource {
         //TODO check if the subject exists
         //TODO get the id for the subject from its name
 
-        querySubjects.setString(1, subject); // check if the subject exists
+        querySubject.setString(1, subject); // check if the subject exists
 
-        ResultSet resultSetSubject = querySubjects.executeQuery();
+        ResultSet resultSet = querySubject.executeQuery();
 
-        if (resultSetSubject.getBoolean(1)) {
+        if (resultSet == null) {
 
             throw new SQLException("Subject does not exist");
 
@@ -239,18 +293,22 @@ public class DataSource {
 
 
         insertStudent.setString(1, studentName);
-        insertStudent.setInt(2, resultSetSubject.getInt(1));
+        insertStudent.setInt(2, resultSet.getInt(1));
         insertStudent.setInt(3, semester);
 
-//        int affectedRows = insertStudent.executeUpdate();
+        int affectedRows = insertStudent.executeUpdate();
 
-//        if (affectedRows != 1) throw new SQLException("Couldn't insert student.");
+        if (affectedRows != 1) {
+            throw new SQLException("Couldn't insert student.");
+        }
 
         ResultSet generatedKeys = insertStudent.getGeneratedKeys();
 
-        if (generatedKeys.next()) return generatedKeys.getInt(1);
-
-        else throw new SQLException("Couldn't get id for the student");
+        if (generatedKeys.next()) {
+            return generatedKeys.getInt(1);
+        } else {
+            throw new SQLException("Couldn't get id for the student");
+        }
 
 
     }
@@ -271,6 +329,26 @@ public class DataSource {
             return -1;
         }
 
+
+    }
+
+    public int queryCourse(String name) {
+
+        try {
+
+
+            queryCourse.setString(1, name);
+
+            ResultSet resultSet = queryCourse.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Query failed");
+        }
+        return -1;
 
     }
 
@@ -321,7 +399,7 @@ public class DataSource {
 
 
         try (Statement statement = conn.createStatement();
-             ResultSet resultSet = statement.executeQuery(QUERY_SUBJECTS)) {
+             ResultSet resultSet = statement.executeQuery(QUERY_ALL_SUBJECTS)) {
 
             List<String> subjects = new ArrayList<>();
 
@@ -387,7 +465,6 @@ public class DataSource {
         try {
 
             queryNotesForStudent.setString(1, studentName);
-//            System.out.println(QUERY_NOTES_FOR_STUDENT);
             ResultSet resultSet = queryNotesForStudent.executeQuery();
 
             if (!resultSet.next()) {
@@ -401,7 +478,6 @@ public class DataSource {
             while (resultSet.next()) {
 
                 studentNotes.put(resultSet.getString(2), resultSet.getInt(3));
-//                studentNotes[resultSet.getString(2)] = resultSet.getString(3);
 
             }
             return studentNotes;

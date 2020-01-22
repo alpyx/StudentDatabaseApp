@@ -59,11 +59,14 @@ public class Main {
 
         List<Course> coursesForSubject = dataSource.queryCoursesForSubject("Informatik");
 
-        for (Course course : coursesForSubject
-        ) {
 
-            System.out.println(course.getName());
-        }
+//        for (Course course : coursesForSubject
+//        ) {
+//
+//            System.out.println(course.getName());
+//        }
+
+        System.out.println(dataSource.updateNote(2, 201216001, "Höhere Mathematik P"));
 
         dataSource.close();
 
