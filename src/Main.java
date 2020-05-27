@@ -66,7 +66,11 @@ public class Main {
 //            System.out.println(course.getName());
 //        }
 
-        System.out.println(dataSource.updateNote(2, 201216001, "Höhere Mathematik P"));
+//        System.out.println(dataSource.updateNote(2, 201216001, "Höhere Mathematik P"));
+
+        System.out.println(dataSource.queryCourse("Programmierung und Computeranwendung"));
+
+//        System.out.println(dataSource.insertSubject("asd"));
 
         dataSource.close();
 

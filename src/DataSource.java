@@ -6,7 +6,7 @@ import java.util.List;
 public class DataSource {
 
     public static final String DB_NAME = "uni.db";
-    public static final String CONNECTION_STRING = "jdbc:sqlite:/home/alper/" + DB_NAME;
+    public static final String CONNECTION_STRING = "jdbc:sqlite:/home/alper/IdeaProjects/StudentDatabaseApp/" + DB_NAME;
 
     public static final String TABLE_SUBJECTS = "subjects";
     public static final String COLUMN_SUBJECT_ID = "_id";
@@ -24,11 +24,6 @@ public class DataSource {
     public static final String COLUMN_STUDENT_SUBJECT = "subject";
     public static final String COLUMN_STUDENT_SEMESTER = "semester";
 
-    public static final String VIEW_SUBJECTS_COURSES = "subjects_courses";
-    public static final String COLUMN_SUBJECTS_COURSES_SUBJECT_ID = "_id";
-    public static final String COLUMN_SUBJECTS_COURSES_SUBJECT_NAME = "subject";
-    public static final String COLUMN_SUBJECTS_COURSES_SEMESTER = "semester";
-    public static final String COLUMN_SUBJECTS_COURSES_COURSE_ID = "course_id";
 
     public static final String TABLE_NOTES = "notes";
     public static final String COLUMN_NOTES_ID = "_id";
@@ -37,40 +32,25 @@ public class DataSource {
     public static final String COLUMN_NOTES_NOTE = "note";
 
 
-    //SELECT students.name, courses.name FROM students INNER JOIN subjects ON students.subject = subjects._id  INNER JOIN courses ON subjects._id = courses.subject ORDER BY students._id;
-    //SELECT students.name, students.semester, subjects.name FROM students INNER JOIN subjects ON students.subject = subjects._id ORDER BY students._id
-    //INSERT INTO students(name, subject, semester) VALUES("Petar Ivanov", 1, 1);
-
-    //show student's notes from the different courses
-//    SELECT students.name, courses.name, notes.note FROM notes INNER JOIN students ON students._id  = notes.student_id INNER JOIN courses ON courses._id = notes.course WHERE students.name = "Alper Ahmedov" ORDER BY notes.note;
-
     public static final String QUERY_NOTES_FOR_STUDENT = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_COURSES + "." + COLUMN_COURSE_NAME + ", " + TABLE_NOTES + "." + COLUMN_NOTES_NOTE +
             " FROM " + TABLE_NOTES + " INNER JOIN " + TABLE_STUDENTS + " ON " + TABLE_STUDENTS + "." + COLUMN_STUDENT_ID + " = " + TABLE_NOTES + "." + COLUMN_NOTES_STUDENT_ID +
             " INNER JOIN " + TABLE_COURSES + " ON " + TABLE_COURSES + "." + COLUMN_COURSE_ID + " = " + TABLE_NOTES + "." + COLUMN_NOTES_COURSE_ID + " WHERE " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + " = ? ORDER BY " + TABLE_NOTES + "." + COLUMN_NOTES_NOTE;
 
 
-    //get the average note for the semester for a student
-    //SELECT avg(note) FROM notes INNER JOIN courses ON notes.course = courses._id WHERE notes.student_id = "201216001" AND courses.semester = 1;
-
     public static final String QUERY_AVERAGE_NOTE_FOR_SEMESTER = "SELECT avg(" + COLUMN_NOTES_NOTE + ") FROM " + TABLE_NOTES + " INNER JOIN " + TABLE_COURSES + " ON " + TABLE_NOTES + "." + COLUMN_NOTES_COURSE_ID + " = " + TABLE_COURSES + "." + COLUMN_COURSE_ID + " WHERE " + TABLE_NOTES + "." + COLUMN_NOTES_STUDENT_ID + " = ? AND " + TABLE_COURSES + "." + COLUMN_COURSE_SEMESTER + " = ?";
 
-
-    // get the note for a subject
-//    SELECT notes.note FROM notes INNER JOIN courses ON notes.course = courses._id WHERE student_id = " 201216001" AND courses.name = "Deutsch";
 
     public static final String QUERY_NOTE_FOR_COURSE = "SELECT " + TABLE_NOTES + "." + COLUMN_NOTES_NOTE + " FROM " + TABLE_NOTES + " INNER JOIN " + TABLE_COURSES +
             " ON " + TABLE_NOTES + "." + COLUMN_NOTES_COURSE_ID + " = " + TABLE_COURSES + "." + COLUMN_COURSE_ID + " WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + TABLE_COURSES + "." + COLUMN_COURSE_NAME + " = ?";
 
 
-    //insert a note
-    // INSERT INTO notes(student_id, course, note) VALUES("201216001", 4, 4);
     public static final String INSERT_NOTE = "INSERT INTO " + TABLE_NOTES + "(" + COLUMN_NOTES_STUDENT_ID + ", " + COLUMN_NOTES_COURSE_ID + ", " + COLUMN_NOTES_NOTE + ") VALUES(?, ?, ?)";
 
     public static final String INSERT_STUDENT = "INSERT INTO " + TABLE_STUDENTS + "(" + COLUMN_SUBJECT_NAME + ", " + COLUMN_STUDENT_SUBJECT + ", " + COLUMN_STUDENT_SEMESTER + ")" + " VALUES(?, ?, ?)";
 
-    public static final String INSERT_SUBJECT = "INSERT INTO " + TABLE_SUBJECTS + "( " + COLUMN_SUBJECT_NAME + " )" + "VALUES(\"?\")";
-    //select all of the students
-    //SELECT students.name, students.semester, students.subject  FROM students;
+    public static final String INSERT_SUBJECT = "INSERT INTO " + TABLE_SUBJECTS + "( " + COLUMN_SUBJECT_NAME + " )" + "VALUES(?)";
+
+
     public static final String QUERY_STUDENTS = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SEMESTER + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SUBJECT + " FROM " + TABLE_STUDENTS;
 
     public static final String QUERY_ALL_SUBJECTS = "SELECT " + COLUMN_SUBJECT_NAME + " FROM " + TABLE_SUBJECTS;
@@ -83,14 +63,14 @@ public class DataSource {
     public static final String QUERY_COURSE = "SELECT " + COLUMN_COURSE_ID + " FROM " + TABLE_COURSES + " WHERE " + COLUMN_COURSE_NAME + " = ?";
 
     public static final String QUERY_STUDENT = "SELECT " + COLUMN_STUDENT_NAME + " FROM " + TABLE_STUDENTS + " WHERE " + COLUMN_STUDENT_ID + " = ?";
-    //select all of the subjects
-    //SELECT subjects.name FROM subjects
 
-    //select all of the courses
-    //SELECT courses.name FROM courses
+
+    public static final String INSERT_COURSE = "INSERT INTO " + TABLE_COURSES + "(" + COLUMN_COURSE_NAME + ", " + COLUMN_COURSE_SEMESTER + ", " + COLUMN_COURSE_SUBJECT + ") VALUES(?, ?, ?)";
 
 
     public static final String UPDATE_NOTE = "UPDATE " + TABLE_NOTES + " SET " + COLUMN_NOTES_NOTE + " = ?" + " WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + COLUMN_NOTES_COURSE_ID + "= ?";
+
+    public static final String DELETE_SUBJECT = "DELETE FROM " + TABLE_SUBJECTS + " WHERE " + COLUMN_COURSE_NAME + " = ?";
 
     private Connection conn;
 
@@ -108,6 +88,8 @@ public class DataSource {
     private PreparedStatement insertNote;
 
     private PreparedStatement updateNote;
+
+    private PreparedStatement deleteSubject;
 
 
     public boolean open() {
@@ -128,8 +110,12 @@ public class DataSource {
             insertNote = conn.prepareStatement(INSERT_NOTE);
             insertStudent = conn.prepareStatement(INSERT_STUDENT);
             insertSubject = conn.prepareStatement(INSERT_SUBJECT);
+            insertCourse = conn.prepareStatement(INSERT_COURSE);
 
             updateNote = conn.prepareStatement(UPDATE_NOTE);
+
+
+            deleteSubject = conn.prepareStatement(DELETE_SUBJECT);
 
 
             return true;
@@ -146,18 +132,29 @@ public class DataSource {
 
         try {
 
+            //QUERY
             if (queryNotesForStudent != null) queryNotesForStudent.close();
             if (queryAverageNoteForSemester != null) queryAverageNoteForSemester.close();
             if (queryNoteForCourse != null) queryNoteForCourse.close();
             if (queryCoursesForSubject != null) queryCoursesForSubject.close();
+            if (queryCourse != null) queryCourse.close();
             if (querySubject != null) querySubject.close();
             if (queryStudent != null) queryStudent.close();
 
+
+            //INSERT
+            if (insertCourse != null) insertCourse.close();
             if (insertNote != null) insertNote.close();
             if (insertStudent != null) insertStudent.close();
             if (insertSubject != null) insertSubject.close();
 
+
+            //UPDATE
             if (updateNote != null) updateNote.close();
+
+
+            //DELETE
+            if (deleteSubject != null) deleteSubject.close();
 
 
         } catch (SQLException e) {
@@ -200,6 +197,16 @@ public class DataSource {
 
         //TODO insert subject
 
+        insertSubject.setString(1, name);
+
+        int affectedRows = insertSubject.executeUpdate();
+
+        if (affectedRows != 1) {
+
+            throw new SQLException("Couldn't insert subject.");
+        }
+
+
         return 0;
     }
 
@@ -210,6 +217,8 @@ public class DataSource {
 
         insertNote.setInt(1, studentID);
         insertNote.setInt(2, course);
+
+
         insertNote.setInt(3, note);
 
 
@@ -265,6 +274,7 @@ public class DataSource {
             updateNote.setInt(1, note);
             updateNote.setInt(2, studentID);
             updateNote.setInt(3, queryCourse(courseName));
+
 
             return updateNote.executeUpdate();
 
@@ -348,9 +358,35 @@ public class DataSource {
         } catch (SQLException e) {
             System.out.println("Query failed");
         }
+
+
         return -1;
 
     }
+
+    public String queryCourse(int course) {
+
+
+        //TODO implement queryCourse with int
+
+        try {
+
+
+            queryCourse.setInt(1, course);
+
+            ResultSet resultSet = queryCourse.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString(2);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Query failed");
+        }
+        return null;
+
+    }
+
 
     public int querySubject(String name) {
 
@@ -414,6 +450,15 @@ public class DataSource {
             System.out.println("Query failed " + e.getMessage());
             return null;
         }
+
+    }
+
+    public int deleteSubject(String name) throws SQLException {
+
+        deleteSubject.setString(1, name);
+
+        return 0;
+
 
     }
 
