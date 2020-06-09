@@ -57,7 +57,7 @@ public class Main {
 
 //        dataSource.insertNote(201216001, 4, 4);
 
-        List<Course> coursesForSubject = dataSource.queryCoursesForSubject("Informatik");
+//        List<Course> coursesForSubject = dataSource.queryCoursesForSubject("Informatik");
 
 
 //        for (Course course : coursesForSubject
@@ -68,9 +68,18 @@ public class Main {
 
 //        System.out.println(dataSource.updateNote(2, 201216001, "Höhere Mathematik P"));
 
-        System.out.println(dataSource.queryCourse("Programmierung und Computeranwendung"));
+//        System.out.println(dataSource.queryCourse("Programmierung und Computeranwendung"));
 
 //        System.out.println(dataSource.insertSubject("asd"));
+
+//        System.out.println(dataSource.queryCourse("Sport"));
+//        System.out.println(dataSource.querySubject("Mechatronik"));
+
+
+//        System.out.println(dataSource.insertCourse("JAVA 8", 1, "Informatik"));
+
+        System.out.println(dataSource.updateNote(5, 201216001, "Sport"));
+
 
         dataSource.close();
 

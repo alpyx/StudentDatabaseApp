@@ -193,6 +193,31 @@ public class DataSource {
 
     }
 
+    public int insertCourse(String name, int semester, String subject) throws SQLException {
+
+
+        int subjectId = querySubject(subject);
+
+        if (subjectId != -1) {
+            insertCourse.setString(1, name);
+            insertCourse.setInt(2, semester);
+            insertCourse.setInt(3, subjectId);
+
+            int affectedRows = insertCourse.executeUpdate();
+
+            if (affectedRows != 1) {
+                throw new SQLException("Couldn't insert course.");
+            }
+
+            return affectedRows;
+        }
+
+        return -1;
+
+
+    }
+
+
     public int insertSubject(String name) throws SQLException {
 
         //TODO insert subject
@@ -207,7 +232,7 @@ public class DataSource {
         }
 
 
-        return 0;
+        return affectedRows;
     }
 
     public int insertNote(int studentID, int course, int note) throws SQLException {
@@ -240,7 +265,7 @@ public class DataSource {
         try {
             queryStudent.setString(1, studentName);
 
-            ResultSet resultSet = querySubject.executeQuery();
+            ResultSet resultSet = queryStudent.executeQuery();
 
             if (resultSet.next()) {
                 return resultSet.getInt(1);
@@ -352,7 +377,7 @@ public class DataSource {
             ResultSet resultSet = queryCourse.executeQuery();
 
             if (resultSet.next()) {
-                return resultSet.getInt(1);
+                return resultSet.getInt(1); //returns the _id of the course
             }
 
         } catch (SQLException e) {
@@ -399,7 +424,6 @@ public class DataSource {
 
             if (resultSet.next()) {
                 return resultSet.getInt(1);
-
             }
 
 
