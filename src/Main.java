@@ -60,6 +60,7 @@ public class Main {
 //        List<Course> coursesForSubject = dataSource.queryCoursesForSubject("Informatik");
 
 
+
 //        for (Course course : coursesForSubject
 //        ) {
 //
@@ -78,8 +79,12 @@ public class Main {
 
 //        System.out.println(dataSource.insertCourse("JAVA 8", 1, "Informatik"));
 
-        System.out.println(dataSource.updateNote(5, 201216001, "Sport"));
+//        System.out.println(dataSource.updateNote(5, 201216001, "Sport"));
 
+//        System.out.println(dataSource.insertStudent("Georgi Jelezov", "Telekomunikationen", 4));
+//        System.out.println(dataSource.queryStudent(201216004));
+        System.out.println(dataSource.updateStudentSemester(201216004, 6));
+//        System.out.println(dataSource.insertSubject("Telekomunikationen"));
 
         dataSource.close();
 

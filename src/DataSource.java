@@ -50,6 +50,8 @@ public class DataSource {
 
     public static final String INSERT_SUBJECT = "INSERT INTO " + TABLE_SUBJECTS + "( " + COLUMN_SUBJECT_NAME + " )" + "VALUES(?)";
 
+    public static final String INSERT_COURSE = "INSERT INTO " + TABLE_COURSES + "(" + COLUMN_COURSE_NAME + ", " + COLUMN_COURSE_SEMESTER + ", " + COLUMN_COURSE_SUBJECT + ") VALUES(?, ?, ?)";
+
 
     public static final String QUERY_STUDENTS = "SELECT " + TABLE_STUDENTS + "." + COLUMN_STUDENT_NAME + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SEMESTER + ", " + TABLE_STUDENTS + "." + COLUMN_STUDENT_SUBJECT + " FROM " + TABLE_STUDENTS;
 
@@ -59,16 +61,14 @@ public class DataSource {
 
     public static final String QUERY_SUBJECT = "SELECT " + COLUMN_SUBJECT_ID + " FROM " + TABLE_SUBJECTS + " WHERE " + COLUMN_SUBJECT_NAME + " = ?";
 
-
     public static final String QUERY_COURSE = "SELECT " + COLUMN_COURSE_ID + " FROM " + TABLE_COURSES + " WHERE " + COLUMN_COURSE_NAME + " = ?";
 
-    public static final String QUERY_STUDENT = "SELECT " + COLUMN_STUDENT_NAME + " FROM " + TABLE_STUDENTS + " WHERE " + COLUMN_STUDENT_ID + " = ?";
+    public static final String QUERY_STUDENT = "SELECT * FROM " + TABLE_STUDENTS + " WHERE " + COLUMN_STUDENT_ID + " = ?";
 
 
-    public static final String INSERT_COURSE = "INSERT INTO " + TABLE_COURSES + "(" + COLUMN_COURSE_NAME + ", " + COLUMN_COURSE_SEMESTER + ", " + COLUMN_COURSE_SUBJECT + ") VALUES(?, ?, ?)";
+    public static final String UPDATE_NOTE = "UPDATE " + TABLE_NOTES + " SET " + COLUMN_NOTES_NOTE + " = ?  WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + COLUMN_NOTES_COURSE_ID + "= ?";
 
-
-    public static final String UPDATE_NOTE = "UPDATE " + TABLE_NOTES + " SET " + COLUMN_NOTES_NOTE + " = ?" + " WHERE " + COLUMN_NOTES_STUDENT_ID + " = ? AND " + COLUMN_NOTES_COURSE_ID + "= ?";
+    public static final String UPDATE_STUDENTS_SEMESTER = "UPDATE " + TABLE_STUDENTS + " SET " + COLUMN_STUDENT_SEMESTER + " = ? WHERE " + COLUMN_STUDENT_ID + " = ?";
 
     public static final String DELETE_SUBJECT = "DELETE FROM " + TABLE_SUBJECTS + " WHERE " + COLUMN_COURSE_NAME + " = ?";
 
@@ -88,6 +88,7 @@ public class DataSource {
     private PreparedStatement insertNote;
 
     private PreparedStatement updateNote;
+    private PreparedStatement updateStudentSemester;
 
     private PreparedStatement deleteSubject;
 
@@ -113,6 +114,7 @@ public class DataSource {
             insertCourse = conn.prepareStatement(INSERT_COURSE);
 
             updateNote = conn.prepareStatement(UPDATE_NOTE);
+            updateStudentSemester = conn.prepareStatement(UPDATE_STUDENTS_SEMESTER);
 
 
             deleteSubject = conn.prepareStatement(DELETE_SUBJECT);
@@ -151,6 +153,7 @@ public class DataSource {
 
             //UPDATE
             if (updateNote != null) updateNote.close();
+            if (updateStudentSemester != null) updateStudentSemester.close();
 
 
             //DELETE
@@ -220,7 +223,6 @@ public class DataSource {
 
     public int insertSubject(String name) throws SQLException {
 
-        //TODO insert subject
 
         insertSubject.setString(1, name);
 
@@ -259,16 +261,17 @@ public class DataSource {
 
     }
 
-    public int queryStudent(String studentName) {
+
+    public String queryStudent(int studentID) {
 
 
         try {
-            queryStudent.setString(1, studentName);
+            queryStudent.setInt(1, studentID);
 
             ResultSet resultSet = queryStudent.executeQuery();
 
             if (resultSet.next()) {
-                return resultSet.getInt(1);
+                return resultSet.getString(2);
             }
 
 
@@ -276,16 +279,33 @@ public class DataSource {
             System.out.println("Query failed " + e.getMessage());
         }
 
-        return -1;
+        return "Student not found.";
 
+    }
+
+    public int updateStudentSemester(int studentID, int semester) {
+
+
+        try {
+
+            if (!queryStudent(studentID).isEmpty()) {
+
+                updateStudentSemester.setInt(2, studentID);
+                updateStudentSemester.setInt(1, semester);
+
+                return updateStudentSemester.executeUpdate();
+
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to update students. " + e.getMessage());
+        }
+        return -1;
     }
 
 
     public int updateNote(int note, int studentID, String courseName) {
 
         //TODO update a note after an emendation
-
-        // note, studentid, courseid
 
         try {
 
@@ -313,23 +333,23 @@ public class DataSource {
 
     public int insertStudent(String studentName, String subject, int semester) throws SQLException {
 
-        //TODO check if the subject exists
+        //TODO check if the subject exists - done
         //TODO get the id for the subject from its name
 
         querySubject.setString(1, subject); // check if the subject exists
 
         ResultSet resultSet = querySubject.executeQuery();
 
-        if (resultSet == null) {
+        if (!resultSet.next()) {
 
             throw new SQLException("Subject does not exist");
 
         }
 
 
-        insertStudent.setString(1, studentName);
-        insertStudent.setInt(2, resultSet.getInt(1));
-        insertStudent.setInt(3, semester);
+        insertStudent.setString(1, studentName); // setting student name
+        insertStudent.setInt(2, resultSet.getInt(1)); // setting subject
+        insertStudent.setInt(3, semester); // setting semester
 
         int affectedRows = insertStudent.executeUpdate();
 
